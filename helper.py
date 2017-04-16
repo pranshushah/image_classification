@@ -76,21 +76,17 @@ def preprocess_and_save_data(cifar10_dataset_folder_path, normalize, one_hot_enc
     valid_labels = []
 
     for batch_i in range(1, n_batches + 1):
-        features, labels = load_cfar10_batch(cifar10_dataset_folder_path, batch_i)
-        validation_count = int(len(features) * 0.1)
-
-        # Prprocess and save a batch of training data
-        _preprocess_and_save(
-            normalize,
-            one_hot_encode,
-            features[:-validation_count],
-            labels[:-validation_count],
-            'preprocess_batch_' + str(batch_i) + '.p')
+        pre_features, pre_labels = load_cfar10_batch(cifar10_dataset_folder_path, batch_i)
+        validation_count = int(len(pre_features) * 0.1)
+        labels = one_hot_encode(pre_labels[:-validation_count])
+        features = pre_features[:-validation_count]
+        pickle.dump((features, labels), open('preprocess_batch_' + str(batch_i) + '.p', 'wb'))
 
         # Use a portion of training batch for validation
-        valid_features.extend(features[-validation_count:])
-        valid_labels.extend(labels[-validation_count:])
+        valid_features.extend(pre_features[-validation_count:])
+        valid_labels.extend(pre_labels[-validation_count:])
 
+    # Preprocess and Save all validation data
     # Preprocess and Save all validation data
     _preprocess_and_save(
         normalize,
@@ -155,7 +151,7 @@ def display_image_predictions(features, labels, predictions):
         pred_names = [label_names[pred_i] for pred_i in pred_indicies]
         correct_name = label_names[label_id]
 
-        axies[image_i][0].imshow(feature*255)
+        axies[image_i][0].imshow(feature)
         axies[image_i][0].set_title(correct_name)
         axies[image_i][0].set_axis_off()
 
